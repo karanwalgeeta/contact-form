@@ -12,11 +12,24 @@ app.use(express.json());
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
+  port: parseInt(process.env.SMTP_PORT),
   secure: false,
+  requireTLS: true,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
+
+// Startup pe SMTP verify karo
+transporter.verify((error, success) => {
+  if (error) {
+    console.log("SMTP Connection Error:", error.message);
+  } else {
+    console.log("SMTP Connected Successfully ✓");
   }
 });
 
@@ -28,35 +41,29 @@ app.post("/contact", async (req, res) => {
   try {
     const { full_name, email, phone, message } = req.body;
 
-    // const mailOptions = {
-    //   from: `"Website Contact" <${process.env.SMTP_USER}>`,
-    // //   to: process.env.ADMIN_EMAIL,
-    //   to: process.env.RECIPIENT_EMAIL,
-    //   subject: "New Contact Form Submission",
-    //   html: `
-    //   <h2>New Message</h2>
-    //   <p><b>Name:</b> ${full_name}</p>
-    //   <p><b>Email:</b> ${email}</p>
-    //   <p><b>Phone:</b> ${phone}</p>
-    //   <p><b>Message:</b> ${message}</p>
-    //   `
-    // };
-
+    // Basic validation
+    if (!full_name || !email || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "full_name, email aur message required hain"
+      });
+    }
 
     const mailOptions = {
-  from: `"Website Contact" <${process.env.SMTP_FROM_EMAIL}>`,
-  to: process.env.RECIPIENT_EMAIL,
-  subject: "New Contact Form Submission",
-  html: `
-  <h2>New Message</h2>
-  <p><b>Name:</b> ${full_name}</p>
-  <p><b>Email:</b> ${email}</p>
-  <p><b>Phone:</b> ${phone}</p>
-  <p><b>Message:</b> ${message}</p>
-  `
-};
+      from: `"Website Contact" <${process.env.SMTP_FROM_EMAIL}>`,
+      to: process.env.RECIPIENT_EMAIL,
+      subject: "New Contact Form Submission",
+      html: `
+        <h2>New Message</h2>
+        <p><b>Name:</b> ${full_name}</p>
+        <p><b>Email:</b> ${email}</p>
+        <p><b>Phone:</b> ${phone || "N/A"}</p>
+        <p><b>Message:</b> ${message}</p>
+      `
+    };
 
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent:", info.messageId);
 
     res.json({
       success: true,
@@ -64,15 +71,16 @@ app.post("/contact", async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error);
+    console.log("Email Error:", error.message);
     res.status(500).json({
       success: false,
-      message: "Email Failed"
+      message: "Email Failed",
+      error: error.message
     });
   }
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
