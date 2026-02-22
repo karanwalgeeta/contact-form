@@ -100,6 +100,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// const transporter = nodemailer.createTransport({
+//   host: process.env.SMTP_HOST,
+//   port: parseInt(process.env.SMTP_PORT),
+//   secure: false,
+//   requireTLS: true,
+//   auth: {
+//     user: process.env.SMTP_USER,
+//     pass: process.env.SMTP_PASS
+//   },
+//   tls: {
+//     rejectUnauthorized: false
+//   }
+// });
+
+
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT),
@@ -111,8 +127,11 @@ const transporter = nodemailer.createTransport({
   },
   tls: {
     rejectUnauthorized: false
-  }
+  },
+  family: 4  // ← yeh add karo — IPv4 force karega
 });
+
+
 
 transporter.verify((error, success) => {
   if (error) {
@@ -121,6 +140,7 @@ transporter.verify((error, success) => {
     console.log("SMTP Connected Successfully ✓");
   }
 });
+
 
 app.get("/", (req, res) => {
   res.send("Server Running");
