@@ -28,18 +28,33 @@ app.post("/contact", async (req, res) => {
   try {
     const { full_name, email, phone, message } = req.body;
 
+    // const mailOptions = {
+    //   from: `"Website Contact" <${process.env.SMTP_USER}>`,
+    // //   to: process.env.ADMIN_EMAIL,
+    //   to: process.env.RECIPIENT_EMAIL,
+    //   subject: "New Contact Form Submission",
+    //   html: `
+    //   <h2>New Message</h2>
+    //   <p><b>Name:</b> ${full_name}</p>
+    //   <p><b>Email:</b> ${email}</p>
+    //   <p><b>Phone:</b> ${phone}</p>
+    //   <p><b>Message:</b> ${message}</p>
+    //   `
+    // };
+
+
     const mailOptions = {
-      from: `"Website Contact" <${process.env.SMTP_USER}>`,
-      to: process.env.ADMIN_EMAIL,
-      subject: "New Contact Form Submission",
-      html: `
-      <h2>New Message</h2>
-      <p><b>Name:</b> ${full_name}</p>
-      <p><b>Email:</b> ${email}</p>
-      <p><b>Phone:</b> ${phone}</p>
-      <p><b>Message:</b> ${message}</p>
-      `
-    };
+  from: `"Website Contact" <${process.env.SMTP_FROM_EMAIL}>`,
+  to: process.env.RECIPIENT_EMAIL,
+  subject: "New Contact Form Submission",
+  html: `
+  <h2>New Message</h2>
+  <p><b>Name:</b> ${full_name}</p>
+  <p><b>Email:</b> ${email}</p>
+  <p><b>Phone:</b> ${phone}</p>
+  <p><b>Message:</b> ${message}</p>
+  `
+};
 
     await transporter.sendMail(mailOptions);
 
